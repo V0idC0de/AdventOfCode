@@ -5,6 +5,7 @@ from typing import Tuple, List, Set
 with open(f'{__file__.split(".")[0]}.txt') as f:
     moves = [l.strip("\n") for l in f.readlines()]
 
+# Mathematical meaning of move directions
 move_distances = {
     "U": (0, -1),
     "D": (0, 1),
@@ -45,6 +46,12 @@ def visualize_field(dot_list: List[Tuple[int, int]]) -> None:
 
 
 def calculate_tail_positions(rope_length: int, move_list: List[str]) -> Set[Tuple[int, int]]:
+    """
+    For a rope with `rope_length` knots, process all moves in `move_list` and return the fields visited by the tail tip.
+    :param rope_length: Amount of knots to simulate
+    :param move_list: List of move instructions (i.e. "U 5" for UP, 5 times)
+    :return: Set containing tuples, each representing coordinates of a field visited by the last knot (tail tip).
+    """
     visited_fields = set()
     dot_list: List[Tuple[int, int]] = [(0, 0) for _ in range(rope_length)]
 
@@ -56,13 +63,13 @@ def calculate_tail_positions(rope_length: int, move_list: List[str]) -> Set[Tupl
             # Handle head-move
             dot_list[0] = dot_list[0][0] + direction_tuple[0], dot_list[0][1] + direction_tuple[1]
             # visualize_field(dot_list)
-            # Let the tail catch up
+            # Let the knots catch up sequentially by calculating and applying their move based on the previous knot.
             for i in range(1, len(dot_list)):
                 x_move, y_move = delta_to_move_tuple(dot_list[i - 1][0] - dot_list[i][0],
                                                      dot_list[i - 1][1] - dot_list[i][1])
                 dot_list[i] = dot_list[i][0] + x_move, dot_list[i][1] + y_move
                 # visualize_field(dot_list)
-            # Add the tail position to discovered fields
+            # Add the current tail position to discovered fields
             visited_fields.add(dot_list[-1])
     return visited_fields
 
