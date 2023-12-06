@@ -3,7 +3,7 @@ with open(f'{__file__.split(".")[0]}.txt') as f:
 
 def p1_digits_from_line(line_text: str) -> int:
     # Simple number finder for part 1
-    digits: List[str] = list(filter(str.isdigit, line_text))
+    digits = list(filter(str.isdigit, line_text))
     return int(f"{digits[0]}{digits[-1]}")
 
 def p2_digits_from_line(line_text: str) -> int:
