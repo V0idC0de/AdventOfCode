@@ -1,5 +1,4 @@
 import itertools
-import timeit
 from functools import lru_cache
 from typing import Callable
 
