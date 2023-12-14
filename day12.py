@@ -1,8 +1,13 @@
+"""
+This day contains quite a lot of unused ideas and experiments, since it took me several hours of fiddling and a few
+hits from Reddit to complete. I left the function in here for the lulz of what I tried and what failed (everything
+including brute-force or trial-and-error-recursion failed).
+"""
+
 import itertools
 import re
-import time
 from collections.abc import Iterable
-from multiprocessing.pool import Pool
+from functools import lru_cache
 from typing import Generator
 
 
@@ -12,26 +17,119 @@ def main():
     lines = [line.split() for line in input_lines]
 
     # Part 1
-    # possibilities_per_line = ((possible_patterns(line), pattern_to_regex(pattern)) for line, pattern in lines)
-    # options_per_line = (count_valid_patterns(s, regex) for s, regex in possibilities_per_line)
-    options_per_line = (guess_next_char(s, pattern) for s, pattern in lines)
-    print(f"Challenge 1: {sum(len(options) for options in options_per_line)}")
+    possibilities_per_line = ((possible_patterns(line), pattern_to_regex(pattern)) for line, pattern in lines)
+    options_per_line = (count_valid_patterns(s, regex) for s, regex in possibilities_per_line)
+    # options_per_line = (guess_next_char(s, pattern) for s, pattern in lines)
+    print(f"Challenge 1: {sum((options for options in options_per_line))}")
 
     # Part 2
     lines = [("?".join([line] * 5), ",".join([pattern] * 5)) for line, pattern in lines]
-    start_time = time.time()
-    with Pool() as pool:
-        possibilities_per_line = pool.starmap(run_with_log, lines, chunksize=5)
-    # for line, pattern in lines:
-    #     print(f"Working on line after {time.time() - start_time}s")
-    #     possibilities_per_line.append(guess_next_char(line, pattern))
-    print(f"Challenge 2: {sum(len(line) for line in possibilities_per_line)}")
-    print(f"Done after {time.time() - start_time} seconds")
+    lines = [(line, tuple(int(i) for i in patterns.split(","))) for line, patterns in lines]
+    print(f"Challenge 2: {sum(count_automaton(line, patterns) for line, patterns in lines)}")
 
 
-def run_with_log(line, pattern):
-    result = guess_next_char2(line, pattern)
-    print(f"Finished line: {line}")
+def count_automaton(line: str, patterns: tuple[int, ...]) -> int:
+    """
+    Heavily inspired by https://github.com/clrfl/AdventOfCode2023/blob/master/12/part2.py.
+    Tried for many hours to implement a more optimized version of part 1, which ended up working, but still took
+    (predicted) an hour or something to complete.
+    Manageable, but obviously not a nice choice - however, I couldn't think of more optimizations.
+    The NFA (Non-Deterministic Finite Automaton) solution was super smart, using a completely different approach and
+    I was quite impressed and frustrated, since I didn't understand why it worked, at first.
+    After thinking about it for a while, I fiddled with my own NFA implementation and ended up with a very similar
+    solution. I spared the leading "." at `states` however - still don't understand what it is used for.
+    """
+    states = ".".join("#" * pattern for pattern in patterns) + "."
+    progressions = {0: 1}
+    next_progressions = {}
+    for char in line:
+        for progress in progressions.keys():
+            if char == "?":
+                if progress + 1 < len(states):
+                    next_progressions[progress + 1] = next_progressions.get(progress + 1, 0) + progressions[progress]
+                if states[progress - 1] == "." or progress == len(states) - 1:
+                    next_progressions[progress] = next_progressions.get(progress, 0) + progressions[progress]
+
+            elif char == ".":
+                if states[progress] == "." and progress + 1 < len(states):
+                    next_progressions[progress + 1] = next_progressions.get(progress + 1, 0) + progressions[progress]
+                if states[progress - 1] == "." or progress == len(states) - 1:
+                    next_progressions[progress] = next_progressions.get(progress, 0) + progressions[progress]
+
+            elif char == "#":
+                if progress + 1 < len(states) and states[progress] == "#":
+                    next_progressions[progress + 1] = next_progressions.get(progress + 1, 0) + progressions[progress]
+
+        progressions = next_progressions
+        next_progressions = {}
+    sum_of_done_progressions = sum(amount for progress, amount in progressions.items() if progress == len(states) - 1)
+    return sum_of_done_progressions
+
+
+def permutations_for_line(line: str, patterns: tuple[int, ...]) -> int:
+    # Optimizations - search can be aborted, if it's impossible to finish
+    if sum(patterns) > len([char for char in line if char in ["#", "?"]]):
+        return 0
+    if sum(patterns) + len(patterns) - 1 > len(line):
+        return 0
+    idx = 0
+    while idx < len(line) and len(patterns) > 0 and patterns[0] <= len(line):
+        if line[idx] == ".":
+            idx += 1
+            continue
+        if line[idx] == "#":
+            if idx + patterns[0] > len(line):
+                # Pattern overshoots line length
+                return 0
+            if any(char == "." for char in line[idx:idx + patterns[0]]):
+                # Next Pattern Rule violated, no valid combo
+                return 0
+            if idx + patterns[0] < len(line) and line[idx + patterns[0]] == "#":
+                return 0
+            # if "?" in line[idx:idx + patterns[0] + 1]:
+            #     return 1 + permutations_for_line(line[idx + patterns[0] + 1:], patterns[1:])
+            return permutations_for_line(line[idx + patterns[0] + 1:], patterns[1:])
+        if line[idx] == "?":
+            remaining_str = line[idx:]
+            q_length = len(list(itertools.takewhile(lambda c: c == "?", remaining_str)))
+            if (len(remaining_str) == q_length) or line[idx + q_length] == ".":
+                pattern_sets = [patterns[:i] for i in range(len(patterns) + 1)]
+                combinations = [
+                    arrangements(q_length, p_set) * permutations_for_line(line[idx + q_length:], patterns[len(p_set):])
+                    for p_set in pattern_sets]
+                # print(f"Searched {line} for {patterns} -> {sum(combinations)}")
+                return sum(combinations)
+            if line[idx + q_length] == "#":
+                # ?-sequence is followed by #
+                return (permutations_for_line(("?" * (q_length - 1)) + "#" + remaining_str[q_length:],
+                                              patterns) +
+                        permutations_for_line(("?" * (q_length - 1)) + "." + remaining_str[q_length:],
+                                              patterns))
+    if len(patterns) > 0:
+        return 0
+    if any(char == "#" for char in line[idx:]):
+        return 0
+    return 1
+
+
+@lru_cache(maxsize=None)
+def arrangements(amount_q: int, patterns: tuple[int, ...]) -> int:
+    if len(patterns) - 1 + sum(patterns) > amount_q:
+        return 0
+    if amount_q == 0:
+        # Maybe should also check for patterns == 0?
+        return 0
+    if len(patterns) == 0:
+        return 1
+    if len(patterns) == 1:
+        return amount_q - patterns[0] + 1
+    return sum(arrangements(amount_q - i, patterns[1:]) for i in range(patterns[0] + 1, amount_q))
+
+
+def run_with_log(i, data):
+    line, pattern = data
+    result = permutations_for_line(line, pattern)
+    print(f"Finished line {i}:\t{line}")
     return result
 
 
