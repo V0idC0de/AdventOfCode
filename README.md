@@ -69,3 +69,13 @@ where part 2 would also finish in a few minutes.
 > Since the cycle length is unknown, I'd have to record the state after doing one cycle and check if it's a known state.
 > In essence this is similar to **Day 8**, where instead of doing an exhaustive simulation,
 > we detect the cycle and then predict where the last step ends up.
+
+### Day 15
+
+Implementing the hash functions was easy using `ord()` which returns the ASCII code for each character.
+Adding `functools.cache()` to the hash-function increased performance slightly.
+
+Part 2 was also simple, since Python has ordered `dict`s (normal `dict`s are ordered by default since Python 3.7),
+hence being a perfect fit for the task of storing the lens' label along with it's **focal length**.
+Replacing existing lenses for appending it to the box/`dict` is handled perfectly, by just writing to the `dict` -
+not much of a difficulty here.
