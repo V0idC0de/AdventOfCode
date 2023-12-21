@@ -79,3 +79,45 @@ Part 2 was also simple, since Python has ordered `dict`s (normal `dict`s are ord
 hence being a perfect fit for the task of storing the lens' label along with it's **focal length**.
 Replacing existing lenses for appending it to the box/`dict` is handled perfectly, by just writing to the `dict` -
 not much of a difficulty here.
+
+### Day 16
+
+todo
+
+### Day 17
+
+Reading the task was already "**oof**". Clearly a path-finding/path-optimization, with restrictions on how the Graph
+can be traversed. I skipped it at first, but then went back to it, as it nagged my mind, that I kinda knew the solution.
+
+**Dijkstra** was an obvious contender for the algorithm, although I had to tweak a few things to make up for the rules
+of this particular task. After refreshing my knowledge on how Dijkstra works exactly, I tweaked the following:
+
+1. I don't need to list all of the nodes, since I'm just interested in the shortest path to one of them
+2. I don't need to store the previous node for each connection, since I'm not looking for a path, but only for
+   the minimum distance from start to finish. I was a little afraid that part 2 would require it, but adding it
+   afterwards
+   would be quite easy, so I skipped it for now - looking back, the right choice.
+3. Last, but definitely not least: Since there are rules regarding the maximum (and in part 2 also minimum) steps to
+   take in each direction, this effectively doubled the amount of nodes, since now the directions, one **must** take
+   when leaving the node is relevant.
+
+I chose an approach where the connected nodes of a given node `N` are defined as **all nodes, which are `i` steps away
+from `N` in a direction of `d`. The direction of those nodes is the one, which `d` is not.**
+
+- `i` is any amount that is allowed to move. **1-3** in part 1, **4-10** in part 2.
+- `d` is an instruction, allowing 2 directions, either being `-` for horizontal movement (left/right) or
+  `|` for vertical movement (up/down).
+
+> Since the crucible cannot turn around entirely and we assume that `i` steps are taken and a 90° turn is done
+> afterwards, it's sufficient to alternate the direction `d`, to indicate in which direction the crucible can move next.
+> Both possible directions, resulting from `-` (left/right) or `|` (up/down) are explored.
+
+For each node, we then just go ahead and see which nodes it can move to and how much heat-loss in incurred.
+Then, we merge that into the heat-loss mapping, in case we found a better solution than the previously known one.
+
+As soon as the target tile is part of the heat-loss mapping, we know that we've found a way.
+In fact, we found the optimal way, since **Dijkstra always finds an optimal solution first**.
+
+> The runtime is pretty long with around half a minute on my machine for the puzzle input.
+> I couldn't come up with a smart improvement, if there is any - but couldn't be bothered to look one up either,
+> since I'm a few days behind.
