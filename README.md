@@ -82,7 +82,19 @@ not much of a difficulty here.
 
 ### Day 16
 
-todo
+Simple approach, each beam is a tuple of coordinates and directions.
+The next step of the beam is defined by the direction it's going to, while the new direction may be **unchanged**
+(if void or a prism parallel to the beam is encountered) or change 90° (if a 45°-mirror is encountered).
+
+Encountering a prism orthogonal basically works like two 45°-mirrors at the same time, since on beam becomes two beams
+with opposing directions.
+
+Just store each tile that was hit by a beam and the direction in which the beam crossed the tile.
+Then go through the beams to be simulated, i.e. in a Queue, calculating the resulting beam (next step).
+
+If a beam visits a tile the was already visited in the same direction, no beam results from it,
+as that beam was simulated already - this prevents endless loops.
+The resulting beam is added to the queue, until no further beam-steps are left.
 
 ### Day 17
 
