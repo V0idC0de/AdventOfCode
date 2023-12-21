@@ -121,3 +121,35 @@ In fact, we found the optimal way, since **Dijkstra always finds an optimal solu
 > The runtime is pretty long with around half a minute on my machine for the puzzle input.
 > I couldn't come up with a smart improvement, if there is any - but couldn't be bothered to look one up either,
 > since I'm a few days behind.
+
+### Day 18
+
+Oh no, another complexity task... I gotta admin, it gets annoying to be forced to create super-efficient solutions,
+eventhough Advent of Code claims to leave it up to you to optimize your program in any way you find aesthetic.
+
+Alright. This is similar to that other day, where there was a pipe network around an area and we should find
+the amount of fields in the area. This time, we can know for sure, that there is at least one field space between
+each border, so my initial thought this time is:
+
+1. Follow the instructions and create a set of coordinates, which represent the border
+2. Using each of the 4 diagonal-adjacent points of an arbitrary single border tile, ...
+   1. If the tile is...
+      1. not a border tile
+      2. out-of-bounds
+      3. or an edge-tile without being a border-tile (indicating that the area is not surrounded by borders,
+         so not the area to be filled inside the border)
+   2. add it to the set of tiles which are inside
+   3. Find the 4 surrounding tiles (up, down, left, right) and add them to the tiles to be checked
+   4. If tiles to be checked are left, pick the next tile to be checked at return to sub-step 1
+
+This will search through all tiles and basically "pour lava into the area". The area where the fluid does not "leak"
+(leak = reach the edge without having a border-tile there) is the inner area. Just combine the border tile and
+inner tiles, get the length and that's it.
+
+> Unfortunately, this is yet another task, where part 2 is not a tricky new gimmick in the original task,
+> but just - in my humble opinion - a rather boring "ok, now do this with an input several magnitudes larger".
+> This forces to optimize time-complexity, which I'm not interested in right now.
+>
+> **Approach**: One could probably come up with a algorithm to break the digging instruction up into squares,
+> getting their respective area by doing simple geometry, instead of counting. However, coding that seems very boring
+> for now, so I'll move onto the next day - I'm a few days behind anyway.
