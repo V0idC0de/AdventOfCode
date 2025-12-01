@@ -251,7 +251,7 @@ def guess_next_char(line: str, pattern: str | tuple[int, ...], pattern_index: in
                 str_buffer.extend("#" for _ in next_chars)
                 # Append the necessary separation dot (even if the original line ends here, this additional dot doesn't
                 # hurt, since we're only interested in the amount of options, on the options itself.
-                next_char = next(char_iter, ".")
+                next_char = next(char_iter, "..")
                 if next_char == "#":
                     return []
                 str_buffer.append(".")
