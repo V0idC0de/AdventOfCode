@@ -35,14 +35,15 @@ def dial_wheel(moves: Iterable[int], dial_pos=50, max_number=99) -> Iterable[tup
         yield dial_pos, wraps
 
 
-dial_inputs = list(map(input_to_direction, input_lines))
+if __name__ == "__main__":
+    dial_inputs = list(map(input_to_direction, input_lines))
 
-# Part 1
-# Go through the moves and store the position, if it is 0.
-# Then count the length of that list.
-dial_positions = [x for x, _ in dial_wheel(dial_inputs) if x == 0]
-print(f"Part 1: {len(dial_positions)}")
+    # Part 1
+    # Go through the moves and store the position, if it is 0.
+    # Then count the length of that list.
+    dial_positions = [x for x, _ in dial_wheel(dial_inputs) if x == 0]
+    print(f"Part 1: {len(dial_positions)}")
 
-# Part 2
-dial_wraps = [wraps for _, wraps in dial_wheel(dial_inputs)]
-print(f"Part 2: {sum(dial_wraps)}")
+    # Part 2
+    dial_wraps = [wraps for _, wraps in dial_wheel(dial_inputs)]
+    print(f"Part 2: {sum(dial_wraps)}")
