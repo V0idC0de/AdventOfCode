@@ -1,3 +1,4 @@
+import time
 from typing import Iterable
 
 with open(f'{__file__.split(".")[0]}.txt') as f:
@@ -36,8 +37,9 @@ def dial_wheel(moves: Iterable[int], dial_pos=50, max_number=99) -> Iterable[tup
 
 
 if __name__ == "__main__":
-    dial_inputs = list(map(input_to_direction, input_lines))
+    start_time = time.time_ns()
 
+    dial_inputs = list(map(input_to_direction, input_lines))
     # Part 1
     # Go through the moves and store the position, if it is 0.
     # Then count the length of that list.
@@ -47,3 +49,6 @@ if __name__ == "__main__":
     # Part 2
     dial_wraps = [wraps for _, wraps in dial_wheel(dial_inputs)]
     print(f"Part 2: {sum(dial_wraps)}")
+
+    end_time = time.time_ns()
+    print(f"Execution time: {(end_time - start_time) / 1_000_000} ms")
