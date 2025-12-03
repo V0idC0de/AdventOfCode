@@ -37,7 +37,7 @@ def dial_wheel(moves: Iterable[int], dial_pos=50, max_number=99) -> Iterable[tup
 
 
 if __name__ == "__main__":
-    start_time = time.time_ns()
+    start_time = time.perf_counter_ns()
 
     dial_inputs = list(map(input_to_direction, input_lines))
     # Part 1
@@ -50,5 +50,5 @@ if __name__ == "__main__":
     dial_wraps = [wraps for _, wraps in dial_wheel(dial_inputs)]
     print(f"Part 2: {sum(dial_wraps)}")
 
-    end_time = time.time_ns()
+    end_time = time.perf_counter_ns()
     print(f"Execution time: {(end_time - start_time) / 1_000_000} ms")

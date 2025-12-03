@@ -77,7 +77,7 @@ def check_range(start: int, end: int, only_twice: bool = False) -> tuple[int, ..
 
 
 if __name__ == "__main__":
-    start_time = time.time_ns()
+    start_time = time.perf_counter_ns()
 
     # Part 1
     invalid_ids = list(find_invalid_ids(ranges, only_twice=True))
@@ -87,5 +87,5 @@ if __name__ == "__main__":
     repeating_ids = find_invalid_ids(ranges, only_twice=False)
     print(f"Part 2: {sum(repeating_ids)}")
 
-    end_time = time.time_ns()
+    end_time = time.perf_counter_ns()
     print(f"Execution time: {(end_time - start_time) / 1_000_000} ms")
