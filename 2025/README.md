@@ -153,3 +153,41 @@ Another idea was - as usual - to throw multiprocessing at this, since it's a CPU
 However, since the overhead of starting multiple processes and distributing the workload is quite high,
 compared to the actual runtime, it turned out to actually **increase** execution time.
 For bigger inputs, it would be worth it, of course.
+
+### Day 3
+
+This task was surprisingly fast to implement. Finding the highest two digit number basically boils down to applying
+`max()`` twice. There are two catches:
+
+1. Since we always want the higher digit in the higher position, we can only find the next digit AFTER the position
+   of the previous one. So `max()` is only applied to the trailing list elements after the previously found digit.
+2. This also implies a restriction. We have to exclude a few elements at the end of the list from being considered
+   in `max()`, since we need enough elements to fill the rest of the number. If the amount of batteries we want to
+   activate is `3`, then the first iteration has to exclude the last 2 elements, since we need at least two more digits
+   after finding the first one.
+
+To put it more generally, if we want to activate `n` batteries and the bank has `m` batteries total,
+then the first iteration of `max()` has to only consider the first `m - (n - 1)` elements, as to leave at least
+one for each following iteration.
+
+Also, to calculate the final joltage with arithmetics only (instead of just concatenating the digit characters and
+casting them to an integer), we can use powers of ten, similar to [Day 2](#day-2).
+
+If we enable `n` batteries, the `i`-th battery's joltage contributes with a higher significance to the total.
+That significance is simply a multiplier of `10^x`, where `x` is `n - i`, so if we enable `4` batteries,
+our number would look like `9731`, so the `1`st iteration contributes `9 * 10^(4-1) = 9 * 10^3 = 9000`,
+the seccond `7 * 10^(4-2) = 7 * 10^2 = 700`, and so on.
+
+> [!NOTE]
+> The usual suspect "off-by-one"-error is around again - do mind a shift of `-1` in the exponent, if you count your
+> iterations from `0`!
+
+When implementing all of this, I pre-emptively solved part 2 as well, since it just asked for another constant
+amount of batteries to be activated, allowing the `max()`-search to just be run `n` times.
+
+The Syntactic Sugar of this solution is a recursive invocation, since finding the best battery to activate is always
+the same problem and finding the battery after this one is just repeating this process with the end-slice of the
+input list and a decremented `n`, so the function knows how many batteries are still to be activated.
+
+Termination condition is just `batteries_to_be_enabled == 0`, since there is nothing to activate anymore, returning `0`.
+Adding all results together yields the final joltage.
