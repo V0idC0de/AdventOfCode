@@ -191,3 +191,95 @@ input list and a decremented `n`, so the function knows how many batteries are s
 
 Termination condition is just `batteries_to_be_enabled == 0`, since there is nothing to activate anymore, returning `0`.
 Adding all results together yields the final joltage.
+
+### Day 4
+
+For this day, there was a kinda obvious solution, similar to an implementation of a previous year.
+This would have been to just build a 2D-Array, iterate through each element, find its neighbors and increment by one and
+then check for field with a count less than 4.
+
+However, I wanted to build something different. An idea was to try this as a 1-dimensional array,
+where the sections for each row are calculated arithmetically. Also, I wanted to avoid maintaining a second grid
+tracking the counts for each neighbor.
+
+This sparked the approach in the implementation, which revolves around a single list of booleans,
+which is the puzzle input, joined into a single line, keeping track of the `row_length` and `total_length`, of course.
+Having this, I took all indices that are `True`, thus are "paper rolls". Based on that index, you can easily calculate
+neighbor-indices, by adding for subtracting `1` (right/left) and/or `row_length` (down/up).
+
+I would just do this for all paper rolls and let them announce their neighbors.
+Then I'd utilize `itertools.Counter` to count the occurrences of each neighbor, thus "how often was each index
+announced to be a neighbor of some paper roll?".
+
+Filtering these indices for the ones that occur less than `4` times and are actually paper rolls
+(because empty fields were also announced as neighbors of a roll) gives me all paper rolls with less than 4 neighbors.
+
+However, there was a hard-to-find bug in this approach: Paper rolls with ß neighbors were not counted at all,
+but are valid answers. So I fixed it by going through the original list of paper rolls and checking each in the
+`Counter` **assuming `0` neighbors, if not found in the `Counter`**. This yielded the correct result and identified
+the indices of the "available paper rolls".
+
+The second part was an iteration of the first: Now, we just set the returned "available paper rolls" to `False`
+in the inventory list of booleans, emulating their "removal" from the fields.
+We now perform the algorithm of part 1 again, finding the next set of available paper rolls.
+If this algorithm ever returns `0` available rolls, we converged to a result, where we can no longer remove anything.
+
+The sum of all returned "available paper rolls" over all iterations is the answer to part 2.
+
+> [!NOTE]
+> This approach is not the most efficient one, since we re-calculate the entire neighbor counts for each iteration.
+> I just followed through on this approach, since it was an interesting exercise and applied a different concept.
+
+#### Alterantive solution for part 2
+
+One could also choose a more efficient approach of "removing a paper roll" by maintaining a grid,
+tracking "amount of neighbors". Then, we do the following:
+
+1. Find all indices of paper rolls, available for removal (less than 4 neighbors)
+2. For each index to be removed, do the following
+   1. Set its field to `False` to indicate that there is no longer a roll
+   2. Subtract `1` from each of its neighbors in the "neighbor count" grid
+   3. On subtracting from a neighbor count field, check if the count is now less than `4`
+   4. If 2.3. is `True`, remove that field by doing all steps of step 2 recursively for that field, then continue here
+
+Once this recursive algorithm finishes, all possible removals are done and we only evaluate fields, whose count changes.
+Since a field has to change its count in order to become available for removal, it is sufficient to check changing
+fields.
+
+Complexity for this approach is minimized for the repeated checking of all fields, performing only necessary
+comparisons, instead of re-evaluating the entire grid each iteration and converging to a result.
+
+### Day 5
+
+This was also pretty straightforward and can easily be done with Python's `range()` function/objects.
+`x in range(1, 10)` can easily check whether `x` is in the range from `1` to `9` (inclusive of `1`, exclusive of `10`).
+
+An alternative is a condition like `1 <= x && x <= 9`, given that `x` is the Ingredient ID and `1`/`9` are range bounds.
+
+Python's `map()` and Generator expressions make it easy to iterate through the ingredients and be as memory-efficient
+as possible, since these Iteration generally do lazy-evaluation.
+
+Part 2 was surprisingly tricky, as the sheer calculation of range-size ignored overlaps, counting IDs mutliple times.
+However, just using `itertools.chain.from_iterable(fresh_ranges)` solves the issue but take **VERY** long,
+since the result is so big.
+
+An alternative solution was to use a function (implemented in Python as a Generator with `yield`) to "compact" ranges.
+By sorting the ranges and then going through each of them, we can just combine by two ranges by doing the following:
+
+1. `r1` and `r2` are combined
+2. If `r2.start` is less or equal to `r1.end + 1`, then the ranges overlap or touch (`range.stop` is exclusive,
+   so `r2.start > r1.stop + 1` is a distance of at least one ID).
+   - In this case, we cannot combine the ranges, so we yield (or store in other language) the currently stored `start`
+     and `stop` values as a `range` object
+3. If `r2.start` is within `r1` or `r1.end == r2.start` we have "touching" or overlapping ranges.
+
+- In this case, set the `r1.end` to `max(r1.end, r2.end)`, as `r2` might end before `r1`.
+
+This causes ranges to be expanded as much as possible and stored once the next range is separated.
+**Sorting is essential** since it guarantees that after a `range.start` was deemed "separated",
+no subsequent range can start earlier than that and potentially overlap with the current one.
+
+> [!NOTE]
+> A neat detail, which is also why I'm working with `range` object instead of tuples, is that `len()` is supported
+> on `range` objects, allowing very quick calculation of the size of a range with arithmetics in a very
+> well readable and "pythonic" way.
