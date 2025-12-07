@@ -304,7 +304,7 @@ Realizing that operators indicate the beginning of a number column allowed me to
 and that columns width/`len()`.
 
 This way, I could correctly slice each line into pieces, keeping spaces intact.
-The appraoch was to bascially build a matrix of characters representing a column and transposing it to get the numbers
+The approach was to basically build a matrix of characters representing a column and transposing it to get the numbers
 read vertically.
 
 Two caveats I ran into and had to work around:
@@ -320,3 +320,7 @@ Two caveats I ran into and had to work around:
 Ultimately, this challenge was a very neat AoC challenge, since the task was visually easy to understand
 (minus the treatment of spaces and alignment of numbers, but that might as well just be me 🤡), but a little tricky
 to implement and find the right structures to represent.
+
+# Day 7
+
+// TODO
