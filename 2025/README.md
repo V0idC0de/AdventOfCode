@@ -283,3 +283,40 @@ no subsequent range can start earlier than that and potentially overlap with the
 > A neat detail, which is also why I'm working with `range` object instead of tuples, is that `len()` is supported
 > on `range` objects, allowing very quick calculation of the size of a range with arithmetics in a very
 > well readable and "pythonic" way.
+
+# Day 6
+
+This challenge was surprisingly difficult, since I got entangled in nested data structures.
+
+Part 1 was straightforward. `str.split()` lines and remove empty entries to account for multiple spaces.
+Then convert the number to integers, transpose the resuling lists, so we have all first elements together,
+which represents one colum of input, which is one calculation.
+
+To add things together, I took the opportunity to use one of my favorite functions: `functools.reduce()`.
+Kinda "overkill", but I suspected that part 2 changes the operators and this approach would make that easy and elegant.
+
+Part 2 hit different, though. First, I entirely misread the task and thought the numbers should be read backwards. (lol)
+After realizing what should really be done, I got really entangled in nested lists and data structures.
+Breaking things down into smaller parts and doing one thing at a time helped a lot.
+
+Since now spaces and position of single numbers in a column was crucial, I could no longer naively `str.split()`.
+Realizing that operators indicate the beginning of a number column allowed me to quickly build a list of start-indices
+and that columns width/`len()`.
+
+This way, I could correctly slice each line into pieces, keeping spaces intact.
+The appraoch was to bascially build a matrix of characters representing a column and transposing it to get the numbers
+read vertically.
+
+Two caveats I ran into and had to work around:
+
+1. The **operator-line** is shorter than the **number-lines**, since the last operator is the last character,
+   but all numbers greater than 9 need more than one character. So the last length has to be the maximum length of all
+   lines, not just the **operator-line**.
+
+2. Spaces generally must be considered as zeroes, since `420`, `69`, `337` has to result in `403` in the first column.
+   However, `42 `, `123`, `69 ` (do note the spaces) has to result in `3` in the last column, not `30`, as a plain
+   `replace(" ", "0")` would yield. So composed number-strings have to be `strip()`-ed before converting to integers.
+
+Ultimately, this challenge was a very neat AoC challenge, since the task was visually easy to understand
+(minus the treatment of spaces and alignment of numbers, but that might as well just be me 🤡), but a little tricky
+to implement and find the right structures to represent.
