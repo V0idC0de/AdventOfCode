@@ -289,7 +289,7 @@ no subsequent range can start earlier than that and potentially overlap with the
 This challenge was surprisingly difficult, since I got entangled in nested data structures.
 
 Part 1 was straightforward. `str.split()` lines and remove empty entries to account for multiple spaces.
-Then convert the number to integers, transpose the resuling lists, so we have all first elements together,
+Then convert the number to integers, transpose the resulting lists, so we have all first elements together,
 which represents one colum of input, which is one calculation.
 
 To add things together, I took the opportunity to use one of my favorite functions: `functools.reduce()`.
@@ -323,4 +323,128 @@ to implement and find the right structures to represent.
 
 # Day 7
 
-// TODO
+For this challenge, there is not much finesse involves, this time.
+
+The puzzle can be solved by "applying" each line to set of indices (X-coordinate of the tachyon beams), that are
+occupied by a beam. If one beam index matches a splitter index, remove it and add the two adjacent indices,
+increasing a "split-counter" in the process. Puzzle solved.
+
+Part 2 reminded me of a puzzle in 2023 and prompted me to apply, what I learned there years ago.
+Here, we can treat the beam position as a kind of "state machine", counting the number of timelines in a given
+state (= X-coordinate).
+
+We start with a dictionary, tracking indices mapped to number of timelines to reach that state.
+This `dict` starts with the starting position of `S` and setting that index to `1`, so `{70: 1}` for me.
+
+Then we go through each line of input, checking for splitters at indices which are present in our `dict`.
+If a splitter is found, copy the value of that index to the two adjacent indices and remove the original index,
+since the beam is stopped by the splitter.
+
+`sum()` all values after applying all input lines and there is the result.
+
+# Day 8
+
+This puzzle was interesting, as it consisted of two stages. First, quickly calculate the order of
+Junction Boxes to connect. Then calculate the circuits.
+
+Part 1 was solved by having a `dict`, mapping each Box to the circuit it belong to. Circuits are represented
+by `set`s of Boxes. Initially, all Junction Boxes are in their own circuit.
+
+Then, for each connection, we check whether the two Boxes are already in the same circuit, so `{ b : {b} }`.
+To make a connection, we simply construct the **set union** of both circuits.
+Then, for each Box that is contained in the new circuit, we set their value to our new circuit.
+
+In Python, variable are all passed by reference, so in the end, there are as many sets as there are circuits.
+However, since circuits are necessarily partitions of the set of all Boxes, it could also be calculated that way.
+
+Part 2 asked to create connections, until there is only one big circuit. The same approach applies here,
+since we can just add connections with the same logic as in part 1, until the length of our **set-union** is equal
+to the number of Boxes.
+
+# Day 9
+
+The first REALLY hard puzzle, at least for me. Similar to a puzzle in 2023, it required areas and borders to be
+calculated, based on whether they are contained in each other.
+
+Part 1 was very straightforward and made great use of Python's `itertools` library. Try all combinations,
+find the one with the biggest area - done.
+
+Part 2 was very tricky. I actually didn't find an elegant solution to begin with.
+Not wanting to resort to brute-force or enumerating all valid tiles (since it scaled horribly),
+I considered approaches, which make use of the vectors connecting tiles, etc.
+
+However, after hours of pondering ideas and always running into dead-ends, I skipped this part,
+since I didn't see any option to come up with a solution myself, so that star is not deserved.
+
+> Some posts on [/r/adventofcode](https://www.reddit.com/r/adventofcode/) mentioned ray-casting, which I also
+> considered,
+> but couldn't entirely think through. One particularily clever individual just used `shapely` to draw the shapes and
+> let the library calculate, whether the square is contained in the bigger shape. Just "lol".
+
+# Day 10
+
+Day 10 was very two-sided. Part 1 rewarded the solver for careful reading of the task and realizing a few things about
+logic and the input. Part 2 required a specific application of linear algebra to solve the problem reliably.
+
+In part 1 the following came to mind:
+
+- the lights are toggled on and off, which effectively is an XOR operation
+- toggling a light twice results in no change at all, so 2 presses = 0 presses
+- this implies, that 3 presses = 1 presses, which means that the question becomes
+  **whether** a button is pressed, not **how often** it is pressed
+- XOR is commutative, so the order of presses does not matter
+
+I represented the lights in binary as a bitmask, so `.#.#` --> `0101`.
+Then, `itertools` could easily generate all combinations of button presses in ascending length,
+so first all single presses, then all combinations of two presses, etc.
+
+This Breadth-First Search guarantees that the first time we reach the target state, we also found the minimum.
+To check whether a solution is found, we check whether the XOR of the lights desired state XOR all button presses
+yields `0`, so all lights are off. Of course, we could also XOR `0` with all button presses, since XOR is commutative.
+
+The bitmasks for buttons can easily be built by bit-shifting `1` to the left by the button index.
+
+Part 2 was a lot more tricky and couldn't be solved in a short time by brute forcing,
+since the amount of button presses (which was at least the maximum in the list of required Joltages)
+yielded so many combinations, that brute forcing was not feasible.
+
+After some tinkering, I realized that the Joltages can be represented as a vector and the effects of each button
+can construct a matrix. Therefore, I was sure the approach was to solve a system of linear equations.
+
+However, I struggled a lot with resolving the matrix and interpreting the results I was getting.
+Checking [/r/adventofcode](https://www.reddit.com/r/adventofcode/) posts after I gave up at 3:00 AM,
+posts confirmed that I was on the right track. I didn't feel like getting into an entirely new library to
+solve the matrix and read up on interpeting Linear Algebra results, so I gave up on this part.
+
+> The numbers on the Stats-page confirmed that this was a rather hard puzzle with less than half of all solvers
+> being able to solve part 2. For now, I'm satisfied with finding the right track, even though I couldn't implement it.
+
+# Day 11
+
+Refreshingly simple compared to day 10.
+
+Part 1 could be solved recursively by building a function, which finds the number of possible paths,
+by returning `1` if the destination is reached and otherwise summing the number of paths from each possible next step,
+according the static available connection map given in the puzzle input.
+
+Utilizing `@functools.cached` this was also quite fast and very few lines of code.
+Interestingly, the sequence of steps didn't matter, just the number of steps.
+This made use of the fact, that **there are no cyclic paths**, which is implied by the question asking for the amount
+of possible paths, which becomes `∞` if cycles were possible.
+
+Part 2 could also be solved by using a simple calculation and my approach from part 1.
+Since now, `fft` and `dac` need to be visited in arbitrary order, the following is possible:
+
+- `start` --> `fft` --> `dac` --> `end`
+- `start` --> `dac` --> `fft` --> `end`
+
+Using `start`, `fft`, `dac`, and `end` as start-points and end-points for the path-search already implemented
+in part 1, this yields 6 sections of the path.
+
+Multiplying the number of possible paths for each segment of a possible sequence yields the possible paths
+to achieve that sequence. Since there are only two sequences (see bullet points above), summing both results
+yields the answer to the puzzle, without any extra complexity.
+
+> The only caveat was, that `end`-node had no paths going forward and is not the destination in part 2,
+> which yielded a few `KeyError`s when looking up the next possible nodes.
+> Simply returning `0` possible paths in this case was sufficient, to indicate that this path is a dead-end.
